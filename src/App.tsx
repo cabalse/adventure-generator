@@ -12,11 +12,32 @@ import "./App.css";
 import AddLocationDialog from "./components/add-location-dialog";
 import SideMenu from "./components/side-menu";
 import LocationNode from "./components/location-node";
+import DiamondNode from "./components/diamond-node";
+import CircleNode from "./components/circle-node";
+import StartEndNode from "./components/nodes/start-end-node";
 
 const initialNodes = [
+  // {
+  //   id: "1",
+  //   type: "locationNode",
+  //   data: { label: "The Inn" },
+  //   position: { x: 0, y: 0 },
+  // },
+  // {
+  //   id: "2",
+  //   type: "diamondNode",
+  //   data: { label: "The Inn" },
+  //   position: { x: 0, y: 0 },
+  // },
+  // {
+  //   id: "3",
+  //   type: "circleNode",
+  //   data: { label: "The Inn" },
+  //   position: { x: 0, y: 0 },
+  // },
   {
-    id: "1",
-    type: "locationNode",
+    id: "4",
+    type: "startEndNode",
     data: { label: "The Inn" },
     position: { x: 0, y: 0 },
   },
@@ -26,7 +47,12 @@ const initialEdges = [
   { id: "1-2", source: "1", target: "2", label: "to the", type: "step" },
 ];
 
-const nodeTypes = { locationNode: LocationNode };
+const nodeTypes = {
+  locationNode: LocationNode,
+  diamondNode: DiamondNode,
+  circleNode: CircleNode,
+  startEndNode: StartEndNode,
+};
 
 function App() {
   const [nodes, setNodes] = useState(initialNodes);

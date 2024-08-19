@@ -3,7 +3,7 @@ import { Handle, Position } from "@xyflow/react";
 
 const handleStyle = { left: 10 };
 
-function LocationNode({ data, isConnectable }) {
+function DiamondNode({ data, isConnectable }) {
   const onChange = useCallback((evt) => {
     console.log(evt.target.value);
   }, []);
@@ -50,4 +50,4 @@ function LocationNode({ data, isConnectable }) {
   );
 }
 
-export default LocationNode;
+export default DiamondNode;
