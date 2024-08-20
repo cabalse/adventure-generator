@@ -11,29 +11,29 @@ function StartEndNode({ data, isConnectable }) {
 
   return (
     <>
-      <div className="">
-        <StartEndIcon className="" />
-        <div>
-          <Handle
-            type="target"
-            position={Position.Top}
-            isConnectable={isConnectable}
-          />
+      <div className="h-[23px] w-[89px]">
+        <div className="absolute p-[3px] pl-[5px] z-10">
           <div className="text-sm">Name: {data.name}</div>
-          <Handle
-            type="source"
-            position={Position.Bottom}
-            id="a"
-            style={handleStyle}
-            isConnectable={isConnectable}
-          />
-          <Handle
-            type="source"
-            position={Position.Bottom}
-            id="b"
-            isConnectable={isConnectable}
-          />
         </div>
+        <StartEndIcon className="absolute h-[95px] -top-[36px] -left-[3px] z-0" />
+        <Handle
+          type="target"
+          position={Position.Top}
+          isConnectable={isConnectable}
+        />
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          id="a"
+          style={handleStyle}
+          isConnectable={isConnectable}
+        />
+        <Handle
+          type="source"
+          position={Position.Bottom}
+          id="b"
+          isConnectable={isConnectable}
+        />
       </div>
     </>
   );

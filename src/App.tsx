@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   ReactFlow,
   Controls,
@@ -11,30 +11,31 @@ import "@xyflow/react/dist/style.css";
 import "./App.css";
 import AddLocationDialog from "./components/add-location-dialog";
 import SideMenu from "./components/side-menu";
-import LocationNode from "./components/location-node";
-import DiamondNode from "./components/diamond-node";
-import CircleNode from "./components/circle-node";
+import LocationNode from "./components/nodes/location-node";
+import DiamondNode from "./components/nodes/diamond-node";
+import CircleNode from "./components/nodes/circle-node";
 import StartEndNode from "./components/nodes/start-end-node";
+import OpenAI from "openai";
 
 const initialNodes = [
-  // {
-  //   id: "1",
-  //   type: "locationNode",
-  //   data: { label: "The Inn" },
-  //   position: { x: 0, y: 0 },
-  // },
-  // {
-  //   id: "2",
-  //   type: "diamondNode",
-  //   data: { label: "The Inn" },
-  //   position: { x: 0, y: 0 },
-  // },
-  // {
-  //   id: "3",
-  //   type: "circleNode",
-  //   data: { label: "The Inn" },
-  //   position: { x: 0, y: 0 },
-  // },
+  {
+    id: "1",
+    type: "startEndNode",
+    data: { label: "The Inn" },
+    position: { x: 0, y: 0 },
+  },
+  {
+    id: "2",
+    type: "diamondNode",
+    data: { label: "The Inn" },
+    position: { x: 0, y: 0 },
+  },
+  {
+    id: "3",
+    type: "circleNode",
+    data: { label: "The Inn" },
+    position: { x: 0, y: 0 },
+  },
   {
     id: "4",
     type: "startEndNode",
@@ -54,6 +55,13 @@ const nodeTypes = {
   startEndNode: StartEndNode,
 };
 
+const openai = new OpenAI({
+  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+  organization: import.meta.env.VITE_OPENAI_ORGANIZATION,
+  project: import.meta.env.VITE_OPENAI_PROJECT,
+  dangerouslyAllowBrowser: true,
+});
+
 function App() {
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
@@ -66,6 +74,7 @@ function App() {
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
     []
   );
+
   const onEdgesChange = useCallback(
     (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
     []
@@ -99,6 +108,29 @@ function App() {
     setDisplayAddLocationDialog(false);
   };
 
+  const handleGenerateAdventure = () => {
+    console.log("Generating adventure... [Turned off for now]");
+    // chatWithAI("Say this is a test")
+    //   .then((response) => {
+    //     console.log(response);
+    //   })
+    //   .catch((error) => {
+    //     console.error(error);
+    //   });
+  };
+
+  const chatWithAI = async (message: string) => {
+    return await openai.chat.completions.create({
+      messages: [
+        {
+          role: "user",
+          content: message,
+        },
+      ],
+      model: "gpt-3.5-turbo",
+    });
+  };
+
   const onPaneClick = useCallback(() => {
     setDisplayAddLocationDialog(false);
     setMenu(null);
@@ -123,7 +155,10 @@ function App() {
       ) : null}
       <div className="w-screen h-screen">
         <div className="flex flex-row w-full h-full">
-          <SideMenu onLocationAdd={handleMenuAddLocation} />
+          <SideMenu
+            onLocationAdd={handleMenuAddLocation}
+            onGenerateAdventure={handleGenerateAdventure}
+          />
           <div className="w-full h-full">
             <ReactFlow
               ref={ref}
