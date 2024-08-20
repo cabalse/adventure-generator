@@ -8,24 +8,31 @@ type SubmitData = {
 };
 
 type Props = {
+  locationSource: string;
+  LocationTarget: string;
   onAdd: (submitData: SubmitData) => void;
   onClose: () => void;
 };
 
-const AddLocationDialog = ({ onAdd, onClose }: Props) => {
+const AddEdgeDialog = ({
+  locationSource,
+  LocationTarget,
+  onAdd,
+  onClose,
+}: Props) => {
   const [locationName, setLocationName] = useState("");
 
   return (
     <Modal
-      title="Add Location"
+      title={"Add Edge between " + locationSource + " and " + LocationTarget}
       controls={<Button onClick={() => onAdd({ locationName })}>Add</Button>}
       onClose={onClose}
     >
       <div>
-        <Input placeHolder="Location Name" onChange={setLocationName} />
+        <Input placeHolder="Description" onChange={setLocationName} />
       </div>
     </Modal>
   );
 };
 
-export default AddLocationDialog;
+export default AddEdgeDialog;

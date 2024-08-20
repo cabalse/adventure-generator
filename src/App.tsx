@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import {
   ReactFlow,
   Controls,
@@ -7,52 +7,36 @@ import {
   applyEdgeChanges,
 } from "@xyflow/react";
 
-import "@xyflow/react/dist/style.css";
-import "./App.css";
 import AddLocationDialog from "./components/add-location-dialog";
 import SideMenu from "./components/side-menu";
 import LocationNode from "./components/nodes/location-node";
-import DiamondNode from "./components/nodes/diamond-node";
-import CircleNode from "./components/nodes/circle-node";
-import StartEndNode from "./components/nodes/start-end-node";
 import OpenAI from "openai";
+
+import "@xyflow/react/dist/style.css";
+import "./App.css";
+import AddEdgeDialog from "./components/add-edge-dialog";
 
 const initialNodes = [
   {
     id: "1",
-    type: "startEndNode",
+    type: "locationNode",
     data: { label: "The Inn" },
     position: { x: 0, y: 0 },
   },
   {
     id: "2",
-    type: "diamondNode",
-    data: { label: "The Inn" },
-    position: { x: 0, y: 0 },
-  },
-  {
-    id: "3",
-    type: "circleNode",
-    data: { label: "The Inn" },
-    position: { x: 0, y: 0 },
-  },
-  {
-    id: "4",
-    type: "startEndNode",
-    data: { label: "The Inn" },
-    position: { x: 0, y: 0 },
+    type: "locationNode",
+    data: { label: "Location A" },
+    position: { x: 0, y: 100 },
   },
 ];
 
 const initialEdges = [
-  { id: "1-2", source: "1", target: "2", label: "to the", type: "step" },
+  { id: "0-1-2", source: "1", target: "2", label: "Path", type: "step" },
 ];
 
 const nodeTypes = {
   locationNode: LocationNode,
-  diamondNode: DiamondNode,
-  circleNode: CircleNode,
-  startEndNode: StartEndNode,
 };
 
 const openai = new OpenAI({
@@ -68,6 +52,9 @@ function App() {
   const [menu, setMenu] = useState(null);
   const [displayAddLocationDialog, setDisplayAddLocationDialog] =
     useState(false);
+  const [displayAddNodeDialog, setDisplayAddNodeDialog] = useState(false);
+  const [locationSource, setLocationSource] = useState("");
+  const [LocationTarget, setLocationTarget] = useState("");
   const ref = useRef(null);
 
   const onNodesChange = useCallback(
@@ -81,7 +68,14 @@ function App() {
   );
 
   const onConnect = useCallback((params) => {
-    console.log("onConnect: ", params);
+    const newEdge = {
+      id: `${edges.length + 1}-${params.source}-${params.target}`,
+      source: params.source,
+      target: params.target,
+      label: "Path",
+      type: "step",
+    };
+    setEdges((edges) => [...edges, newEdge]);
   }, []);
 
   const onNodeContextMenu = useCallback(
@@ -93,10 +87,10 @@ function App() {
     setDisplayAddLocationDialog(true);
   };
 
-  const handleDialogAddLocation = () => {
+  const handleDialogAddLocation = (data: any) => {
     const newLocation = {
       id: `${nodes.length + 1}`,
-      data: { label: `Location ${nodes.length + 1}` },
+      data: { label: data.locationName },
       position: { x: 100, y: 100 },
       type: "locationNode",
     };
@@ -104,8 +98,24 @@ function App() {
     setDisplayAddLocationDialog(false);
   };
 
+  const handleDialogAddNode = (data: any) => {
+    const newEdge = {
+      id: `${edges.length + 1}-${locationSource}-${LocationTarget}`,
+      source: locationSource,
+      target: LocationTarget,
+      label: data.locationName,
+      type: "step",
+    };
+    setEdges((edges) => [...edges, newEdge]);
+    setDisplayAddNodeDialog(false);
+  };
+
   const handleDialogOnClose = () => {
     setDisplayAddLocationDialog(false);
+  };
+
+  const handleAddNodeDialogOnClose = () => {
+    setDisplayAddNodeDialog(false);
   };
 
   const handleGenerateAdventure = () => {
@@ -140,10 +150,9 @@ function App() {
     console.log("onConnectStart: ", _, nodeId);
   }, []);
 
-  const onConnectEnd = useCallback(
-    (event) => console.log("onConnectEnd: ", event),
-    []
-  );
+  const onConnectEnd = useCallback((event) => {
+    console.log("onConnectEnd: ", event);
+  }, []);
 
   return (
     <>
@@ -151,6 +160,14 @@ function App() {
         <AddLocationDialog
           onAdd={handleDialogAddLocation}
           onClose={handleDialogOnClose}
+        />
+      ) : null}
+      {displayAddNodeDialog ? (
+        <AddEdgeDialog
+          locationSource={locationSource}
+          LocationTarget={LocationTarget}
+          onAdd={handleDialogAddNode}
+          onClose={handleAddNodeDialogOnClose}
         />
       ) : null}
       <div className="w-screen h-screen">
