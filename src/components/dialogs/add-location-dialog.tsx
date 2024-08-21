@@ -1,7 +1,7 @@
 import { useState } from "react";
-import Modal from "./modal";
-import Button from "./button";
-import Input from "./input";
+import Modal from "./../modal";
+import Button from "./../button";
+import Input from "./../input";
 
 type SubmitData = {
   locationName: string;

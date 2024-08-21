@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   ReactFlow,
   Controls,
@@ -7,14 +7,15 @@ import {
   applyEdgeChanges,
 } from "@xyflow/react";
 
-import AddLocationDialog from "./components/add-location-dialog";
 import SideMenu from "./components/side-menu";
 import LocationNode from "./components/nodes/location-node";
 import OpenAI from "openai";
 
 import "@xyflow/react/dist/style.css";
 import "./App.css";
-import AddEdgeDialog from "./components/add-edge-dialog";
+import AddEdgeDialog from "./components/dialogs/add-edge-dialog";
+import AddEdgeData from "./types/add-edge-data";
+import AddLocationDialog from "./components/dialogs/add-location-dialog";
 
 const initialNodes = [
   {
@@ -52,9 +53,15 @@ function App() {
   const [menu, setMenu] = useState(null);
   const [displayAddLocationDialog, setDisplayAddLocationDialog] =
     useState(false);
-  const [displayAddNodeDialog, setDisplayAddNodeDialog] = useState(false);
-  const [locationSource, setLocationSource] = useState("");
-  const [LocationTarget, setLocationTarget] = useState("");
+  const [displayAddEdgeDialog, setDisplayAddEdgeDialog] = useState(false);
+  const [addEdgeData, setAddEdgeData] = useState<AddEdgeData>({
+    edgeLabel: "",
+    sourceName: "",
+    targetName: "",
+    sourceId: "",
+    targetId: "",
+  });
+
   const ref = useRef(null);
 
   const onNodesChange = useCallback(
@@ -67,15 +74,23 @@ function App() {
     []
   );
 
-  const onConnect = useCallback((params) => {
-    const newEdge = {
-      id: `${edges.length + 1}-${params.source}-${params.target}`,
-      source: params.source,
-      target: params.target,
-      label: "Path",
-      type: "step",
-    };
-    setEdges((edges) => [...edges, newEdge]);
+  const getNodeLabel = (nodeId: string) => {
+    const node = nodes.find((node) => node.id == nodeId);
+    if (node) {
+      return node.data.label;
+    }
+    return "";
+  };
+
+  const onConnect = useCallback((params: any) => {
+    setDisplayAddEdgeDialog(true);
+    setAddEdgeData({
+      edgeLabel: "",
+      sourceName: getNodeLabel(params.source),
+      targetName: getNodeLabel(params.target),
+      sourceId: params.source,
+      targetId: params.target,
+    });
   }, []);
 
   const onNodeContextMenu = useCallback(
@@ -98,24 +113,24 @@ function App() {
     setDisplayAddLocationDialog(false);
   };
 
-  const handleDialogAddNode = (data: any) => {
+  const handleDialogAddEdge = (data: AddEdgeData) => {
     const newEdge = {
-      id: `${edges.length + 1}-${locationSource}-${LocationTarget}`,
-      source: locationSource,
-      target: LocationTarget,
-      label: data.locationName,
+      id: `${edges.length + 1}-${data.sourceId}-${data.targetId}`,
+      source: data.sourceId,
+      target: data.targetId,
+      label: data.edgeLabel,
       type: "step",
     };
     setEdges((edges) => [...edges, newEdge]);
-    setDisplayAddNodeDialog(false);
+    setDisplayAddEdgeDialog(false);
   };
 
   const handleDialogOnClose = () => {
     setDisplayAddLocationDialog(false);
   };
 
-  const handleAddNodeDialogOnClose = () => {
-    setDisplayAddNodeDialog(false);
+  const handleAddEdgeDialogOnClose = () => {
+    setDisplayAddEdgeDialog(false);
   };
 
   const handleGenerateAdventure = () => {
@@ -162,12 +177,11 @@ function App() {
           onClose={handleDialogOnClose}
         />
       ) : null}
-      {displayAddNodeDialog ? (
+      {displayAddEdgeDialog ? (
         <AddEdgeDialog
-          locationSource={locationSource}
-          LocationTarget={LocationTarget}
-          onAdd={handleDialogAddNode}
-          onClose={handleAddNodeDialogOnClose}
+          data={addEdgeData}
+          onAdd={handleDialogAddEdge}
+          onClose={handleAddEdgeDialogOnClose}
         />
       ) : null}
       <div className="w-screen h-screen">
