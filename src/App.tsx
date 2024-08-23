@@ -16,25 +16,7 @@ import "./App.css";
 import AddEdgeDialog from "./components/dialogs/add-edge-dialog";
 import AddEdgeData from "./types/add-edge-data";
 import AddLocationDialog from "./components/dialogs/add-location-dialog";
-
-const initialNodes = [
-  {
-    id: "1",
-    type: "locationNode",
-    data: { label: "The Inn" },
-    position: { x: 0, y: 0 },
-  },
-  {
-    id: "2",
-    type: "locationNode",
-    data: { label: "Location A" },
-    position: { x: 0, y: 100 },
-  },
-];
-
-const initialEdges = [
-  { id: "0-1-2", source: "1", target: "2", label: "Path", type: "step" },
-];
+import LoadDialog from "./components/dialogs/load-dialog";
 
 const nodeTypes = {
   locationNode: LocationNode,
@@ -48,12 +30,13 @@ const openai = new OpenAI({
 });
 
 function App() {
-  const [nodes, setNodes] = useState(initialNodes);
-  const [edges, setEdges] = useState(initialEdges);
+  const [nodes, setNodes] = useState([]);
+  const [edges, setEdges] = useState([]);
   const [menu, setMenu] = useState(null);
   const [displayAddLocationDialog, setDisplayAddLocationDialog] =
     useState(false);
   const [displayAddEdgeDialog, setDisplayAddEdgeDialog] = useState(false);
+  const [displayLoadDialog, setDisplayLoadDialog] = useState(false);
   const [addEdgeData, setAddEdgeData] = useState<AddEdgeData>({
     edgeLabel: "",
     sourceName: "",
@@ -144,6 +127,14 @@ function App() {
     //   });
   };
 
+  const handleLoadOnClose = () => {
+    setDisplayLoadDialog(false);
+  };
+
+  const handleMenuLoadClick = () => {
+    setDisplayLoadDialog(true);
+  };
+
   const chatWithAI = async (message: string) => {
     return await openai.chat.completions.create({
       messages: [
@@ -184,11 +175,19 @@ function App() {
           onClose={handleAddEdgeDialogOnClose}
         />
       ) : null}
+      {displayLoadDialog ? (
+        <LoadDialog
+          displayDialog={displayLoadDialog}
+          onClose={handleLoadOnClose}
+        />
+      ) : null}
       <div className="w-screen h-screen">
         <div className="flex flex-row w-full h-full">
           <SideMenu
             onLocationAdd={handleMenuAddLocation}
             onGenerateAdventure={handleGenerateAdventure}
+            onLoad={handleMenuLoadClick}
+            onSave={() => console.log("Save")}
           />
           <div className="w-full h-full">
             <ReactFlow
