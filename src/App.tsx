@@ -1,10 +1,12 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import {
   ReactFlow,
   Controls,
   Background,
   applyNodeChanges,
   applyEdgeChanges,
+  OnConnectStartParams,
+  Connection,
 } from "@xyflow/react";
 
 import SideMenu from "./components/side-menu";
@@ -17,6 +19,11 @@ import AddEdgeDialog from "./components/dialogs/add-edge-dialog";
 import AddEdgeData from "./types/add-edge-data";
 import AddLocationDialog from "./components/dialogs/add-location-dialog";
 import LoadDialog from "./components/dialogs/load-dialog";
+import useAppContext from "./appcontext/useappcontext";
+
+import { AppReducerActionTypes } from "./appcontext/appstatereducers";
+import PageTemplate from "./components/page-template";
+import FlowDiagram from "./components/flow-diagram";
 
 const nodeTypes = {
   locationNode: LocationNode,
@@ -30,8 +37,7 @@ const openai = new OpenAI({
 });
 
 function App() {
-  const [nodes, setNodes] = useState([]);
-  const [edges, setEdges] = useState([]);
+  const { appState, appStateDispatch } = useAppContext();
   const [menu, setMenu] = useState(null);
   const [displayAddLocationDialog, setDisplayAddLocationDialog] =
     useState(false);
@@ -48,7 +54,11 @@ function App() {
   const ref = useRef(null);
 
   const onNodesChange = useCallback(
-    (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
+    (changes) =>
+      appStateDispatch({
+        type: AppReducerActionTypes.SET_NODE_LIST,
+        payload: (nds) => applyNodeChanges(changes, nds),
+      }),
     []
   );
 
@@ -65,7 +75,7 @@ function App() {
     return "";
   };
 
-  const onConnect = useCallback((params: any) => {
+  const onConnect = useCallback((params: Connection) => {
     setDisplayAddEdgeDialog(true);
     setAddEdgeData({
       edgeLabel: "",
@@ -87,12 +97,15 @@ function App() {
 
   const handleDialogAddLocation = (data: any) => {
     const newLocation = {
-      id: `${nodes.length + 1}`,
+      id: `${appState.nodes.length + 1}`,
       data: { label: data.locationName },
       position: { x: 100, y: 100 },
       type: "locationNode",
     };
-    setNodes((nodes) => [...nodes, newLocation]);
+    appStateDispatch({
+      type: AppReducerActionTypes.ADD_NODE,
+      payload: newLocation,
+    });
     setDisplayAddLocationDialog(false);
   };
 
@@ -152,11 +165,14 @@ function App() {
     setMenu(null);
   }, [setMenu, setDisplayAddLocationDialog]);
 
-  const onConnectStart = useCallback((_, { nodeId }) => {
-    console.log("onConnectStart: ", _, nodeId);
-  }, []);
+  const onConnectStart = useCallback(
+    (event: MouseEvent | TouchEvent, { nodeId }: OnConnectStartParams) => {
+      console.log("onConnectStart: ", event, nodeId);
+    },
+    []
+  );
 
-  const onConnectEnd = useCallback((event) => {
+  const onConnectEnd = useCallback((event: MouseEvent | TouchEvent) => {
     console.log("onConnectEnd: ", event);
   }, []);
 
@@ -189,26 +205,9 @@ function App() {
             onLoad={handleMenuLoadClick}
             onSave={() => console.log("Save")}
           />
-          <div className="w-full h-full">
-            <ReactFlow
-              ref={ref}
-              nodes={nodes}
-              onNodesChange={onNodesChange}
-              edges={edges}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onConnectStart={onConnectStart}
-              onConnectEnd={onConnectEnd}
-              onNodeContextMenu={onNodeContextMenu}
-              onPaneClick={onPaneClick}
-              nodeTypes={nodeTypes}
-              fitView
-            >
-              <Background />
-              <Controls />
-              {menu && <div style={{ ...menu }}>HELLO</div>}
-            </ReactFlow>
-          </div>
+          <PageTemplate>
+            <FlowDiagram />
+          </PageTemplate>
         </div>
       </div>
     </>

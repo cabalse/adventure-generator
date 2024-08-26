@@ -6,7 +6,7 @@ import AppStateType from "./app-state-type";
 
 const initialContextValue = {
   appState: initialAppState,
-  appStateDispatch: () => {},
+  appStateDispatch: (() => {}) as React.Dispatch<AppStateType>,
 };
 
 const ApplicationContext = createContext(initialContextValue);
@@ -17,7 +17,7 @@ type Props = {
 
 type ContextValueType = {
   appState: AppStateType;
-  appStateDispatch: React.Dispatch<any>;
+  appStateDispatch: React.Dispatch<AppStateType>;
 };
 
 const AppContextprovider = ({ children }: Props) => {
