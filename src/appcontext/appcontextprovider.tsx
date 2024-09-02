@@ -1,12 +1,13 @@
 import React, { createContext, useReducer } from "react";
 
 import initialAppState from "./initialappstate";
-import appStateReducer from "./appstatereducers";
-import AppStateType from "./app-state-type";
+import appStateReducer from "./appstatereducer";
+import ReducerAction from "./types/reducer-action";
+import AppContext from "./types/app-context";
 
-const initialContextValue = {
+const initialContextValue: AppContext = {
   appState: initialAppState,
-  appStateDispatch: (() => {}) as React.Dispatch<AppStateType>,
+  appStateDispatch: (() => {}) as React.Dispatch<ReducerAction>,
 };
 
 const ApplicationContext = createContext(initialContextValue);
@@ -15,18 +16,13 @@ type Props = {
   children: React.ReactNode;
 };
 
-type ContextValueType = {
-  appState: AppStateType;
-  appStateDispatch: React.Dispatch<AppStateType>;
-};
-
 const AppContextprovider = ({ children }: Props) => {
   const [state, appStateDispatch] = useReducer(
     appStateReducer,
     initialAppState
   );
 
-  const contextValue: ContextValueType = {
+  const contextValue: AppContext = {
     appState: state,
     appStateDispatch: appStateDispatch,
   };

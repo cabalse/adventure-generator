@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   ReactFlow,
   Controls,
@@ -20,10 +20,10 @@ import AddEdgeData from "./types/add-edge-data";
 import AddLocationDialog from "./components/dialogs/add-location-dialog";
 import LoadDialog from "./components/dialogs/load-dialog";
 import useAppContext from "./appcontext/useappcontext";
-
-import { AppReducerActionTypes } from "./appcontext/appstatereducers";
 import PageTemplate from "./components/page-template";
 import FlowDiagram from "./components/flow-diagram";
+import dialogs from "./constants/dialogs";
+import { ReducerActionTypes } from "./appcontext/appstatereducer";
 
 const nodeTypes = {
   locationNode: LocationNode,
@@ -38,11 +38,6 @@ const openai = new OpenAI({
 
 function App() {
   const { appState, appStateDispatch } = useAppContext();
-  const [menu, setMenu] = useState(null);
-  const [displayAddLocationDialog, setDisplayAddLocationDialog] =
-    useState(false);
-  const [displayAddEdgeDialog, setDisplayAddEdgeDialog] = useState(false);
-  const [displayLoadDialog, setDisplayLoadDialog] = useState(false);
   const [addEdgeData, setAddEdgeData] = useState<AddEdgeData>({
     edgeLabel: "",
     sourceName: "",
@@ -160,11 +155,6 @@ function App() {
     });
   };
 
-  const onPaneClick = useCallback(() => {
-    setDisplayAddLocationDialog(false);
-    setMenu(null);
-  }, [setMenu, setDisplayAddLocationDialog]);
-
   const onConnectStart = useCallback(
     (event: MouseEvent | TouchEvent, { nodeId }: OnConnectStartParams) => {
       console.log("onConnectStart: ", event, nodeId);
@@ -176,40 +166,58 @@ function App() {
     console.log("onConnectEnd: ", event);
   }, []);
 
+  const loadDialog = () => {
+    return (
+      <>
+        {appState.displayDialog == dialogs.LOAD ? (
+          <LoadDialog
+            onClose={() =>
+              appStateDispatch({
+                type: ReducerActionTypes.CLOSE_DIALOG,
+                payload: "",
+              })
+            }
+          />
+        ) : null}
+      </>
+    );
+  };
+
+  const addLocationDialog = () => {
+    return (
+      <>
+        {appState.displayDialog === dialogs.ADD_LOCATION ? (
+          <AddLocationDialog
+            onAdd={handleDialogAddLocation}
+            onClose={handleDialogOnClose}
+          />
+        ) : null}
+      </>
+    );
+  };
+
+  const addEdgeDialog = () => {
+    return (
+      <>
+        {appState.displayDialog === dialogs.ADD_EDGE ? (
+          <AddEdgeDialog
+            data={addEdgeData}
+            onAdd={handleDialogAddEdge}
+            onClose={handleAddEdgeDialogOnClose}
+          />
+        ) : null}
+      </>
+    );
+  };
+
   return (
     <>
-      {displayAddLocationDialog ? (
-        <AddLocationDialog
-          onAdd={handleDialogAddLocation}
-          onClose={handleDialogOnClose}
-        />
-      ) : null}
-      {displayAddEdgeDialog ? (
-        <AddEdgeDialog
-          data={addEdgeData}
-          onAdd={handleDialogAddEdge}
-          onClose={handleAddEdgeDialogOnClose}
-        />
-      ) : null}
-      {displayLoadDialog ? (
-        <LoadDialog
-          displayDialog={displayLoadDialog}
-          onClose={handleLoadOnClose}
-        />
-      ) : null}
-      <div className="w-screen h-screen">
-        <div className="flex flex-row w-full h-full">
-          <SideMenu
-            onLocationAdd={handleMenuAddLocation}
-            onGenerateAdventure={handleGenerateAdventure}
-            onLoad={handleMenuLoadClick}
-            onSave={() => console.log("Save")}
-          />
-          <PageTemplate>
-            <FlowDiagram />
-          </PageTemplate>
-        </div>
-      </div>
+      {loadDialog()}
+      {addLocationDialog()}
+      {addEdgeDialog()}
+      <PageTemplate>
+        <FlowDiagram />
+      </PageTemplate>
     </>
   );
 }
